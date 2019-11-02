@@ -1,6 +1,6 @@
 ## Reactor 核心特性
 
-    英文原文：https://projectreactor.io/docs/core/release/reference/#core-features
+    英文原文：https://projectreactor.io/docs/core/3.2.11.RELEASE/reference/#core-features
     
 	Reactor 项目的主要产出物是 reactor-core，一个反应式库，它专注于反应式流规范和 目标执行环境 Java 8 。
 	
