@@ -1,8 +1,7 @@
 [[getting-started]]
 = 开始
 
-This section contains information that should help you get going with Reactor. It
-includes the following information:
+本节包含的信息应该有助于你开始使用 Reactor。它包括以下信息：
 
 * <<getting-started-introducing-reactor>>
 * <<prerequisites>>
@@ -10,46 +9,32 @@ includes the following information:
 * <<getting>>
 
 [[getting-started-introducing-reactor]]
-== Introducing Reactor
+== Reactor 介绍
 //TODO flesh out, reword. could also be updated on the website
-Reactor is a fully non-blocking reactive programming foundation for the JVM, with
-efficient demand management (in the form of managing "backpressure"). It integrates
-directly with the Java 8 functional APIs, notably `CompletableFuture`, `Stream`, and
-`Duration`. It offers composable asynchronous sequence APIs `Flux` (for [N] elements) and
-`Mono` (for [0|1] elements), extensively implementing the [Reactive Streams](https://www.reactive-streams.org/)
-specification.
+Reactor 是 JVM 的一个完全非阻塞的反应式编程基础，具有高效的需求管理（以管理“背压”的形式）。它直接与 Java 8 函数 APIs 集成，尤其是：`CompletableFuture`、`Stream`、`Duration`。它提供了可组合的异步序列 APIs `Flux`（0~N个元素） 和 `Mono`（0~1 个元素），广泛地实现了[反应式流]（https://www.reactive-streams.org/ ）规范。
 
-Reactor also supports non-blocking inter-process communication with the
-`reactor-netty` project. Suited for Microservices Architecture, Reactor Netty offers
-backpressure-ready network engines for HTTP (including Websockets), TCP, and UDP.
-Reactive Encoding and Decoding are fully supported.
+Reactor 还支持与 `reactor-netty` 项目的非阻塞进程间通信。Reactor Netty 适合于微服务架构，它为 HTTP（包括 Websockets）、TCP 和 UDP 提供了背压就绪的网络引擎。完全支持反应式编码、解码。
 
 [[prerequisites]]
-== Prerequisites
-Reactor Core runs on `Java 8` and above.
+== 先决条件
+Reactor 核心运行在 `Java 8` 及以上。
 
-It has a transitive dependency on `org.reactivestreams:reactive-streams:1.0.2`.
+它传递依赖于 `org.reactivestreams:reactive-streams:1.0.2`。
 
 [NOTE]
 ====
-*Android support*:
+*Android 支持*:
 
-* Reactor 3 does not officially support or target Android (consider using RxJava 2 if
-such support is a strong requirement).
-* However, it should work fine with Android SDK 26 (Android O) and above.
-* We are open to evaluating changes that benefit Android support in a best-effort
-fashion. However, we cannot make guarantees. Each decision must be made on a
-case-by-case basis.
+* Reactor 3 没有正式支持 Android（如果需要这种支持，可以考虑使用 RxJava2 ）。
+* 不过，它应该可以很好地与 Android SDK 26（Android O）及以上版本兼容。
+* 我们愿意用最好的方式评估有利于 Android 支持的变化。然而，我们不能保证。每项决定都必须根据具体情况作出。
 ====
 
 [[getting-started-understanding-bom]]
-== Understanding the BOM
-Reactor 3 uses a BOM model since `reactor-core 3.0.4`, with the `Aluminium` release train.
-This curated list groups artifacts that are meant to work well together, providing
-the relevant versions despite potentially divergent versioning schemes in these artifacts.
+== 理解 BOM
+从 `reactor-core 3.0.4` 开始，Reactor 3 使用 BOM 模型，它具有 `Aluminum` 火车发版（Release Train）。这个精心策划的清单将能够很好地协同工作的 artifacts（制品、工件）分组，提供了相关的版本，尽管这些 artifacts（制品、工件）中可能存在不同的版本控制方案。
 
-The BOM (Bill of Materials) is itself versioned, using a release train scheme
-with a codename followed by a qualifier. Here are a few examples:
+BOM（物料清单）本身是版本化的，它使用一个带有代码名和限定符的发布计划。有以下例子：
 [verse]
 Aluminium-RELEASE
 Californium-BUILD-SNAPSHOT
@@ -57,32 +42,23 @@ Aluminium-SR1
 Bismuth-RELEASE
 Californium-SR32
 
-The codenames represent what would traditionally be the MAJOR.MINOR number. They (mostly)
-come from the https://en.wikipedia.org/wiki/Periodic_table#Overview[Periodic Table of
-Elements], in increasing alphabetical order.
+这些代码名代表了传统上的主、次版本号。它们（大部分）来自links:https://en.wikipedia.org/wiki/Periodic_table#Overview[元素周期表]，按字母顺序递增。
 
-The qualifiers are (in chronological order):
+限定符如下（按时间顺序）：
 
 * `BUILD-SNAPSHOT`
-* `M1`..`N`: Milestones or developer previews
-* `RELEASE`: The first GA (General Availability) release in a codename series
-* `SR1`..`N`: The subsequent GA releases in a codename series (equivalent to PATCH
-number, SR stands for "Service Release").
+* `M1`..`N`：里程碑或开发者预览
+* `RELEASE`：一个代码名系列中的第一个 GA（General Availability，一般可用）发行版
+* `SR1`..`N`：一个代码名系列中的 GA 发行版的子版本，等价于补丁号，SR 是 Service Release（服务发行版）的缩写。
 
 [[getting]]
-== Getting Reactor
-As mentioned earlier, the easiest way to use Reactor in your core is to use the BOM and
-add the relevant dependencies to your project. Note that, when adding such a dependency,
-you must omit the version so that the version gets picked up from the BOM.
+== 得到 Reactor
+如前所述，使用 Reactor 的最简单的方法是使用 BOM 并将相关依赖添加到项目中。请注意，在添加这样的依赖项时，必须省略版本号，以便从 BOM 中获取版本号。
 
-However, if you want to force the use of a specific artifact's version, you can specify
-it when adding your dependency, as you usually would. You can also forgo the BOM entirely
-and specify dependencies by their artifact versions.
+但是，如果你想强制使用特定的版本，你可以在添加依赖项时指定它，就像通常所做的那样。你还可以完全弃用 BOM，并根据依赖项的版本指定它们。
 
-=== Maven Installation
-The BOM concept is natively supported by Maven. First, you need to import the BOM by
-adding the following snippet to your `pom.xml`. If the top section
-(`dependencyManagement`) already exists in your pom, add only the contents.
+=== Maven 中的安装
+Maven 原本就支持 BOM 概念。首先，你需要通过把下面的片段添加到 `pom.xml` 文件，来导入 BOM。若 `dependencyManagement` 在文件中已经存在，只需要把其中的内容添加进去。
 
 [source,xml]
 ----
@@ -98,11 +74,9 @@ adding the following snippet to your `pom.xml`. If the top section
     </dependencies>
 </dependencyManagement>
 ----
-<1> Notice the `dependencyManagement` tag. This is in addition to the regular
-`dependencies` section.
+<1> 注意：标签 `dependencyManagement` 是常规 `dependencies` 部分之外的内容。
 
-Next, add your dependencies to the relevant reactor projects, as usual, except without a
-`<version>`, as shown here:
+接下来，把依赖项添加到相关 Reactor 项目中，像往常一样，不需要添加 标签 `version`，如下所示：
 
 [source,xml]
 ----
@@ -119,16 +93,14 @@ Next, add your dependencies to the relevant reactor projects, as usual, except w
     </dependency>
 </dependencies>
 ----
-<1> Dependency on the core library
-<2> No version tag here
-<3> `reactor-test` provides facilities to unit test reactive streams
+<1> 依赖于核心库
+<2> 这里没有版本标签
+<3> `reactor-test` 为单元测试反应式流提供了便利
 
-=== Gradle installation
-Gradle has no core support for Maven BOMs, but you can use Spring's
-https://github.com/spring-gradle-plugins/dependency-management-plugin[gradle-dependency-management]
-plugin.
+=== Gradle 中的安装
+Gradle 没有对 Maven BOMs 的核心支持，但是你可以使用 Spring 的插件：links:https://github.com/spring-gradle-plugins/dependency-management-plugin[gradle-dependency-management]。
 
-First, apply the plugin from the Gradle Plugin Portal:
+首先，从 Gradle 插件门户应用这个插件：
 
 [source,groovy]
 ----
@@ -136,10 +108,9 @@ plugins {
     id "io.spring.dependency-management" version "1.0.6.RELEASE" <1>
 }
 ----
-<1> as of this writing, 1.0.6.RELEASE is the latest version of the plugin.
-Check for updates.
+<1> 写本文时，这个插件的最新版本是：1.0.6.RELEASE，请检查更新。
 
-Then use it to import the BOM:
+然后，使用这个插件导入 BOM：
 [source,groovy]
 ----
 dependencyManagement {
@@ -149,22 +120,19 @@ dependencyManagement {
 }
 ----
 
-Finally add a dependency to your project, without a version number:
+最后，把依赖项添加到你的项目，无需版本号：
 [source,groovy]
 ----
 dependencies {
      compile 'io.projectreactor:reactor-core' <1>
 }
 ----
-<1> There is no third `:` separated section for the version. It is taken from
-the BOM.
+<1> 没有第三个：单独的部分为版本。它是从 BOM 中提取的。
 
-=== Milestones and Snapshots
-Milestones and developer previews are distributed through the Spring Milestones
-repository rather than Maven Central. To add it to your build configuration
-file, use the following snippet:
+=== 里程碑和快照
+里程碑和开发者预览版本是通过 Spring 里程碑仓库而不是 Maven 中心仓库分发的。要将其添加到构建配置文件中，请使用以下片段：
 
-.Milestones in Maven
+.在 Maven 中的 Milestones
 [source,xml]
 ----
 <repositories>
@@ -176,9 +144,9 @@ file, use the following snippet:
 </repositories>
 ----
 
-For Gradle, use the following snippet:
+对于 Gradle，使用以下片段：
 
-.Milestones in Gradle
+.在 Gradle 中的 Milestones
 [source,groovy]
 ----
 repositories {
@@ -187,9 +155,9 @@ repositories {
 }
 ----
 
-Similarly, snapshots are also available in a separate dedicated repository:
+类似地，快照也可以在单独的专用仓库中使用：
 
-.BUILD-SNAPSHOTs in Maven
+.在 Maven 中的 BUILD-SNAPSHOTs
 [source,xml]
 ----
 <repositories>
@@ -201,7 +169,7 @@ Similarly, snapshots are also available in a separate dedicated repository:
 </repositories>
 ----
 
-.BUILD-SNAPSHOTs in Gradle
+.在 Gradle 中的 BUILD-SNAPSHOTs
 [source,groovy]
 ----
 repositories {
