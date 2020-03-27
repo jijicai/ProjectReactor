@@ -9,6 +9,12 @@ ifndef::host-github[:ext-relative: {outfilesuffix}]
 :sectnums:
 :sectanchors:
 
+译者：quxinyong@qq.com
+
+头条号： https://www.toutiao.com/c/user/3662984752/#mid=1640272215305230[IT荠荠菜]
+
+软件版本：3.2.11.RELEASE
+
 include::aboutDoc.adoc[leveloffset=1]
 ifeval::["{backend}" == "html5"]
 https://github.com/reactor/reactor-core/edit/master/docs/asciidoc/aboutDoc.adoc[Suggest Edit^, title="Suggest an edit to the above section via github", role="fa fa-edit"]
