@@ -1,0 +1,25 @@
+extends: default
+font:
+  catalog:
+    KaiGen Gothic CN:
+      normal: KaiGenGothicCN-Regular.ttf
+      bold: KaiGenGothicCN-Bold.ttf
+      italic: KaiGenGothicCN-Regular-Italic.ttf
+      bold_italic: KaiGenGothicCN-Bold-Italic.ttf
+    M+ 1mn:
+      normal: GEM_FONTS_DIR/mplus1mn-regular-subset.ttf
+      bold: GEM_FONTS_DIR/mplus1mn-bold-subset.ttf
+      italic: GEM_FONTS_DIR/mplus1mn-italic-subset.ttf
+      bold_italic: GEM_FONTS_DIR/mplus1mn-bold_italic-subset.ttf
+  fallbacks:
+  - KaiGen Gothic CN
+base:
+  font-family: KaiGen Gothic CN
+heading:
+  font-family: $base-font-family
+abstract:
+  title:
+    font-family: $heading-font-family
+sidebar:
+  title:
+    font-family: $heading-font-family
