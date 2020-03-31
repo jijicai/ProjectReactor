@@ -1,46 +1,98 @@
 # 4、Reactor 核心功能
 
-Reactor 项目的主要产出物是 reactor-core，一个反应式库，它专注于反应式流规范和 目标执行环境 Java 8 。
+Reactor 项目的主要工件是 reactor-core，一个反应式库，它专注于反应式流规范和目标是 Java 8 。
 
-Reactor 引入了可组合的反应式类型来实现 Publisher 接口，并且提供了丰富的操作符词汇：Flux 和 Mono。一个 Flux 对象表示一个有 0-N 项的序列，而一个 Mono 对象表示一个单值或空结果（0-1）。
+Reactor 引入了可组合的反应式类型来实现 Publisher 接口，并且还提供了丰富的操作符词汇：Flux 和 Mono。一个 Flux 对象表示一个有 0\~N 项的反应式序列，而一个 Mono 对象表示一个单值或空结果（0\~1）。
 
-这种区别将一些语义信息携带到类型中，指示异步处理的粗略基数。例如，一个 HTTP 请求只产生一个响应，所以进行计数 count 操作没有多大意义。因此，将这种 HTTP 调用的结果表示为 Mono&lt;HttpResponse>，比将其表示为 Flux&lt;HttpResponse> 更有意义，因为它只提供与 0-1 项上下文相关的操作符。
+这种区别将一些语义信息携带到类型中，指示异步处理的粗略基数。例如，一个 HTTP 请求只产生一个响应，所以进行 count 操作没有多大意义。因此，将这种 HTTP 调用的结果表示为 Mono&lt;HttpResponse>，比将其表示为 Flux&lt;HttpResponse> 更有意义，因为它只提供与 0~1 项上下文相关的操作符。
 
 更改处理的最大基数的操作符也切换到相关类型。例如，count 操作符存在于 Flux 中，但它返回一个 Mono&lt;Long>。
 
 
-## 4.1、Flux 0-N 项的异步序列
+## 4.1、Flux，0~N 项的异步序列
 
-![image](https://raw.githubusercontent.com/jijicai/ProjectReactor/master/img/flux.png)
+![image](img/flux.png)
+
+>图片中的文本：
+>
+>This is the timeline of the Flux. Time flows from left to right.
+>
+>这是 Flux 的时间线。时间从左到右流动。
+>
+>These are items emitted by the Flux.
+>
+>这些是 Flux 发出的项。
+>
+>This vertical line indicates that Flux has completed successfull.
+>
+>这条垂直线表示 Flux 已成功完成。
+>
+>This Flux is the result of the transformation.
+>
+>该 Flux 是转换的结果。
+>
+>If for some reason the Flux terminates abnormally, with an error, the vertical line is replaced by an X.
+>
+>如果由于某种原因，Flux 异常终止，并出现错误，垂直线将被 X 替换。
+>
+>These dotted lines and this box indicate that a transformation is being applied to the Flux. The text inside the box shows the nature of the transformation.
+>
+>这些虚线和此框表示正在对 Flux 应用转换。方框内的文本显示了转换的性质。
 
 Flux&lt;T> 是一个标准的 Publishe&lt;T> ，它表示一个发出的 0-N 项的异步序列，它可以被完成信号或错误中断。在反应式流规范中，这 3 种类型的信号转换为对下游订阅者的 onNext、onComplete、onError 方法的调用。
 
 由于可能的信号范围很大，Flux 是通用的反应式类型。请注意：所有事件，甚至是终止事件都是可选的：
-除了 onComplete 事件之外，没有 onNext 事件表示空的有限序列，但是删除 onComplete后，你将得到一个无限的空序列（除了关于取消的测试之外，这不是特别有用）。同样，无限序列不一定是空的。例如，Flux.interval(Duration) 产生一个无限的 Flux&lt;Long> 并从时钟发出规则的滴答声。
+除了 onComplete 事件之外，没有 onNext 事件表示空的有限序列，但是删除 onComplete 后，你将得到一个无限的空序列（除了关于取消的测试之外，这不是特别有用）。同样，无限序列不一定是空的。例如，Flux.interval(Duration) 产生一个无限的 Flux&lt;Long> 并从时钟发出规则的滴答声。
 
 
-## 4.2、Mono 异步的 0-1 个结果
+## 4.2、Mono，异步的 0~1 个结果
 
-![image](https://raw.githubusercontent.com/jijicai/ProjectReactor/master/img/mono.png)
+![image](img/mono.png)
+
+>图片中的文本：
+>
+>This is the timeline of the Mono. Time flows from left to right.
+>
+>这是 Flux 的时间线。时间从左到右流动。
+>
+>This is the eventual item emitted by the Mono.
+>
+>这是 Mono 发出的最终项。
+>
+>This vertical line indicates that the Mono has completed successfully.
+>
+>这条垂直线表示 Mono 已成功完成。
+>
+>This Mono is the result of the transformation.
+>
+>该 Mono 是转换的结果。
+>
+>If for some reason the Mono terminates abnormally, with an error, the vertical line is replaced by a X.
+>
+>如果由于某种原因，Flux 异常终止，并出现错误，垂直线将被 X 替换。
+>
+>These dotted lines and this box indicate that a transformation is being applied to the Mono. The text inside the box shows the nature of the transformation.
+>
+>这些虚线和此框表示正在对 Mono 应用转换。方框内的文本显示了转换的性质。
 
 Mono&lt;T> 是一个专门的 Publisher&lt;T>，它最多只发出一个数据项的，然后可以选择使用一个 onComplete 或 onError 信号终止它。
 
 它只提供了对 Flux 可用的操作符的一个子集，和一些将其转换为 Flux 的操作符（特别是那些将 Mono 和 另一个 Publisher 结合在一起的操作符）。例如，Mono#concatWith(Publisher) 返回一个 Flux，而 Mono#then(Mono) 返回另一个 Mono。
 
-注意，Mono 可以用来表示只有完成概念（completion，类似于 Runnable）的无值的异步进程。要创建一个，请使用一个空 Mono&lt;Void>。
+注意，Mono 可以用来表示只有完成概念（类似于 Runnable）的无值的异步进程。要创建一个，请使用一个空 Mono&lt;Void>。
 
 ## 4.3、创建 Flux 或 Mono 并订阅它的简单方式
 
 开始使用 Flux 和 Mono 的最简单方法是使用在各自类中找到的众多工厂方法之一。
 
-例如，创建一个 String 序列，可以列举它们，也可以把它们放到集合中，并从中创建Flux。如下：
+例如，创建一个 String 序列，可以列举它们，也可以把它们放到集合中，并从中创建 Flux。如下：
 ```
 Flux<String> seq1 = Flux.just("foo", "bar", "foobar");
 
 List<String> iterable = Arrays.asList("foo", "bar", "foobar");
 Flux<String> seq2 = Flux.fromIterable(iterable);
 ```
-工厂方法的其他示例包括：
+工厂方法的其他示例包括以下内容：
 ```
 Mono<String> noData = Mono.empty(); 
 
@@ -48,10 +100,10 @@ Mono<String> data = Mono.just("foo");
 
 Flux<Integer> numbersFromFiveToSeven = Flux.range(5, 3); 
 ```
-    （1）即使泛型类型没有值，工厂方法也会使用它。
+    （1）注意，工厂方法承认泛型类型，即使它没有值。
     （2）第一个参数是范围的开始，第二个参数是要产生的数据项数目。
 
-当订阅时，Flux 和 Mono 可以利用 Java 8 拉姆达表达式（lambdas）。你可以选择多种 subscribe() 方法的变体，这些变体为不同的回调组合使用拉姆达表达式，如以下方法签名所示：
+当订阅时，Flux 和 Mono 可以利用 Java 8 拉姆达表达式（lambdas）。你可以选择多种 .subscribe() 变体，这些变体为不同的回调组合使用拉姆达表达式，如以下方法签名所示：
 
 基于 Lambda 的 Flux 订阅变体
 ```
@@ -70,18 +122,18 @@ subscribe(Consumer<? super T> consumer,Consumer<? super Throwable> errorConsumer
     （2）使用每个产生的值做一些事情。
     （3）处理值，但也对错误作出反应。
     （4）处理值和错误，但也在序列成功完成时执行一些代码。
-    （5）处理值、错误和成功完成，但也要处理此订阅调用生成的订阅。
+    （5）处理值、错误和成功完成，但也要处理此 subscribe 调用生成的 Subscription。
 
-提示：这些变体方法返回对订阅的引用，当不需要更多的数据时，你可以使用它取消订阅。取消后，数据源应当停止产生值，并清除掉创建的任何资源。在 Reactor 中，这种取消和清理行为在 Reactor 中由通用的一次性接口表示。
+提示：这些变体方法返回对订阅的引用，当不需要更多的数据时，你可以使用它取消订阅。取消后，数据源应当停止产生值，并清除掉创建的任何资源。这种取消和清理行为在 Reactor 中由通用的 Disposable 接口表示。
 
 ### 4.3.1、subscribe 方法示例
 
-本小节包含了 subscribe 方法的五个签名中的每个签名的最小示例。下面的代码展示了一个无参基本方法的示例。
+本小节包含 subscribe 方法的五个签名中每个的最小示例。下面的代码展示了一个无参基本方法的示例。
 ```
 Flux<Integer> ints = Flux.range(1, 3); 
 ints.subscribe(); 
 ```
-    （1）创建一个 Flux 对象，当订阅时，它可以产生 3 个值。
+    （1）设置一个 Flux，当订阅者连接时产生 3 个值。
     （2）以最简单的方式订阅。
 
 上面的代码没有产生任何可见的输出，但是它确实工作了。这 Flux 产生了 3 个值。如果我们提供一个拉姆达表达式（lambdas），我们就能看到这些值的输出。
@@ -90,16 +142,16 @@ subscribe 方法的下一个例子展示了显示值的一种方法：
 Flux<Integer> ints = Flux.range(1, 3); 
 ints.subscribe(i -> System.out.println(i)); 
 ```
-    （1）创建一个 Flux 对象，当订阅时，它可以产生 3 个值。
-    （2）订阅者订阅后，将打印出这些值。（使用可以打印值的订阅者订阅）
+    （1）设置一个 Flux，当订阅者连接时产生 3 个值。
+    （2）使用将打印这些值的订阅者进行订阅。
 
-上面的代码产生了以下输出：
+上面的代码产生以下输出：
 ```
 1
 2
 3
 ```
-为了演示下一个签名方法，我们故意引入一个错误，如下面的示例所示：
+为了演示下一个签名方法，我们故意引入一个错误，如下面示例所示：
 ```
 Flux<Integer> ints = Flux.range(1, 4) 
       .map(i -> { 
@@ -109,7 +161,7 @@ Flux<Integer> ints = Flux.range(1, 4)
 ints.subscribe(i -> System.out.println(i), 
       error -> System.err.println("Error: " + error));
 ```
-    （1）创建一个 Flux 对象，当订阅时，它可以产生 3 个值。
+    （1）设置一个 Flux，当订阅者连接时产生 3 个值。
     （2）我们使用了 map 方法，这样我们就可以以不同的方式处理这些值。
     （3）对于大部分值，返回值本身。
     （4）对于一个值，将强制产生错误。
@@ -122,7 +174,7 @@ ints.subscribe(i -> System.out.println(i),
 3
 Error: java.lang.RuntimeException: Got to 4
 ```
-下一个 subscribe 签名方法包括一个错误处理程序和一个用于完成事件的处理程序，如下面的示例所示：
+下一个 subscribe 签名方法包括一个错误处理程序和一个用于完成事件的处理程序，如下面示例所示：
 ```
 Flux<Integer> ints = Flux.range(1, 4); 
 ints.subscribe(i -> System.out.println(i),
@@ -142,7 +194,7 @@ ints.subscribe(i -> System.out.println(i),
 4
 Done
 ```
-最后一个 subscribe 的签名方法包括一个 Consumer&lt;Subscription>。该变体需要你对订阅（对其执行一个 request(long)，或 cancel() ） 执行一些操作，否则 Flux 将挂起：
+最后一个 subscribe 的签名方法包括一个 Consumer&lt;Subscription>。该变体需要你对 Subscription（对其执行一个 request(long)，或 cancel() ） 执行一些操作，否则 Flux 将挂起：
 ```
 Flux<Integer> ints = Flux.range(1, 4);
 ints.subscribe(i -> System.out.println(i),
@@ -150,23 +202,23 @@ ints.subscribe(i -> System.out.println(i),
     () -> System.out.println("Done"),
     sub -> sub.request(10)); 
 ```
-    （1）当我们订阅时，我们收到一个订阅。发出信号，表示我们需要从源获取最多 10 个元素（该源实际将发出 4 个元素就完成了）。
+    （1）当我们订阅时，我们收到一个 Subscription。发出信号，表示我们需要从源获取最多 10 个元素（该源实际将发出 4 个元素就完成了）。
 
-### 4.3.2、用 Disposable 取消订阅
+### 4.3.2、用 Disposable 取消 subscribe()
 
 subscribe() 方法的所有这些基于拉姆达表达式的变体都有一个 Disposable 返回类型。在本例中，Disposable 接口表示可以通过调用其 dispose() 方法取消订阅。
 
 对于 Flux 或 Mono，取消是源应该停止产生元素的信号。但是，不能保证它是及时的：有些源可能生成元素的速度非常快，甚至可以在收到取消指令之前完成。
 
-在 Disposables 类中有一些实用的工具方法。其中，Disposable.swap() 可以创建一个 Disposable 包裹，允许你自动地取消并替换一个具体的 Disposable。例如，在一个 UI 场景中，当用户点击某个按钮时，你想取消一个请求并用一个新的替换它，这可能是有用的。释放包装器本身将关闭它，释放当前的具体值和将来尝试的所有替换。
+在 Disposables 类中有一些有关 Disposable 的实用的工具方法。其中，Disposable.swap() 可以创建一个 Disposable 包裹，允许你自动地取消并替换一个具体的 Disposable。例如，在一个 UI 场景中，当用户点击某个按钮时，你想取消一个请求并用一个新的替换它，这可能是有用的。释放包装器本身将关闭它，释放当前的具体值和将来尝试的所有替换。
 
-另一个有趣的工具方法是 Disposables.composite(...)。这个 composite 方法允许收集几个 Disposable，例如，与服务调用关联的多个执行中的请求，并在稍后立即处理所有这些请求。一旦调用了 Composite 接口的 dispose() 方法，任何添加另一个 Disposable 的尝试都会立即处理该方法。
+另一个有趣的工具方法是 Disposables.composite(...)。这个 composite 方法允许收集几个 Disposable，例如，与服务调用关联的多个执行中的请求，并在稍后立即处理所有这些请求。一旦调用了 composite 接口的 dispose() 方法，任何添加另一个 Disposable 的尝试都会立即处理该方法。
 
 ### 4.3.3、lambdas 表达式的替代者：BaseSubscriber
 
-另外还有一个更通用的 subscribe 方法，它采用成熟的 Subscriber，而不是从拉姆达表达式中组合一个。为了帮助你编写这样的一个 Subscriber，我们提供了一个可扩展的类 BaseSubscriber。
+另外还有一个更通用的 subscribe 方法，它采用成熟的 Subscriber，而不是从拉姆达表达式中组合一个。为了帮助你编写这样的一个 Subscriber，我们提供了一个可扩展的名为 BaseSubscriber 的类。
 
-让我们实现其中一个，类名为：SampleSubscriber。下面的例子展示了它是如何与 Flux 关联的：
+让我们实现其中一个，我们称之为 SampleSubscriber。下面的例子展示它是如何与 Flux 关联的：
 ```
 SampleSubscriber<Integer> ss = new SampleSubscriber<Integer>();
 Flux<Integer> ints = Flux.range(1, 4);
@@ -212,22 +264,21 @@ Subscribed
 ```
 BaseSubscriber 也提供一个 requestUnbounded() 方法用于切换到无边界模式（相当于 request(Long.MAX_VALUE)），以及一个 cancel() 方法。
 
-还有其他的钩子：hookOnComplete、hookOnError、hookOnCancel 和 hookFinally
-（序列终止时总是调用这个方法，并将终止类型作为 SignalType 参数传入）。
+还有其他的钩子：hookOnComplete、hookOnError、hookOnCancel 和 hookFinally（序列终止时总是调用这个方法，并将终止类型作为 SignalType 参数传入）。
 
-注意：你很可能想要实现 hookOnError、hookOnCancel 和 hookOnComplete方法。你也许也想要实现 hookFinally 方法。SampleSubscribe 是执行有界请求的 Subscriber 的绝对最小实现。
+注意：你很可能想要实现 hookOnError、hookOnCancel 和 hookOnComplete 方法。你也许也想要实现 hookFinally 方法。SampleSubscribe 是执行有界请求的 Subscriber 的绝对最小实现。
 
 ### 4.3.4、关于背压，以及更改请求的方式
 
-在 Reactor 中实现背压时，消费者压力传播回源的方式是向上游操作符发送请求。当前请求之和有时候被引用为当前“请求”或“挂起的请求”。请求量的上限是 Long.MAX_VALUE，表示一个无界的请求（尽可能快地生成数据，基本可以防止背压）。
+在 Reactor 中实现背压时，消费者压力传播回源的方式是通过向上游操作符发送 request。当前请求之和有时候被引用为当前“请求”或“挂起的请求”。请求量的上限是 Long.MAX_VALUE，表示一个无界的请求（尽可能快地生成数据，基本上是禁用背压）。
 
-第一个请求来自最终订阅者，在订阅时，但是最直接的订阅方式都会立即触发一个无界请求（Long.MAX_VALUE）：
+在订阅时，第一个请求来自最终订阅者，但是最直接的订阅方式都会立即触发一个 Long.MAX_VALUE 的无界请求：
 
     （1）subscribe() 和大部分基于拉姆达表达式的变体（具有 Consumer<Subscription> 参数的变体除外）
     （2）block()、blockFirst() 和 blockLast()
     （3）使用方法 toIterable() 和 toStream() 执行迭代操作。
 
-自定义原始请求的最简单方式是用带有 hookOnSubscribe 重写方法的 BaseSubscriber 订阅：
+自定义原始请求的最简单方式是用带有 hookOnSubscribe 重写方法的 BaseSubscriber 去 subscribe：
 ```
 Flux.range(1, 10)
 .doOnRequest(r -> System.out.println("request of " + r))
@@ -255,32 +306,31 @@ Cancelling after having received 1
 
 **操作符改变下游的需求**
 
-要记住的一点是，在订阅级别上表达的请求可以被上游链条中每个操作符重新调整。教科书中案例是 buffer(N) 操作符：如果它收到一个 request(2)，它会被解释为对两个完整缓存区的请求。因此，由于缓冲区需要将 N 个元素视为已满，因此缓冲区操作符将请求改造为 2*N。
+要记住的一点是，在订阅级别上表达的请求可以被上游链条中每个操作符重新调整。教科书中案例是 buffer(N) 操作符：如果它收到一个 request(2)，它会被解释为对两个完整缓存区的请求。因此，由于缓冲区需要将 N 个元素视为已满，buffer 操作符将请求改造为 2*N。
 
-你可能还注意到，有些操作符的变体接受一个名为 prefetch 方法的 int 型输入参数。这是修改下游请求的另一个一类操作符。这些通常处理内部序列的操作符，从每个传入元素（像 flatMap 方法）派生一个 Publisher。
+你可能还注意到，有些操作符的变体接受一个名为 prefetch 的 int 型输入参数。这是修改下游请求的另一类操作符。这些通常处理内部序列的操作符，从每个传入元素（像 flatMap 方法）派生一个 Publisher。
 
-预取（Prefetch）是一种调整对这些内部序列发出的初始化请求的方法。如果未指定，大多数操作符以 32个请求为开始。
+预取（Prefetch）是一种调整对这些内部序列发出的初始化请求的方法。如果未指定，大多数操作符以 32 个请求为开始。
 
 这些操作符通常还实现一个补充优化：一旦操作符看到 25% 的预取请求完成，它就会从上游再请求 25%。这是一种启发式优化，使这些操作符能够主动预测上游请求。
 
 最后，有一对操作符可以让你直接调整请求：limitRate 和 limitRequest。
 
-limitRate(N) 拆分下游的请求，以便它们以较小的批量向上游传播。例如，向 limitRate(10) 发出 100 个请求，最多会将10个请求传播到上游。（a request of 100 made to limitRate(10) would result in at most 10 requests of 10 being propagated to the upstream.）
-注意，在这种形式中，limitRate 实际上实现了上面讨论的补充优化。
+limitRate(N) 拆分下游的请求，以便它们以较小的批量向上游传播。例如，向 limitRate(10) 发出 100 的请求，最多会将 10 个 10 的请求传播到上游。注意，在这种形式中，limitRate 实际上实现了上面讨论的补充优化。
 
-这个操作符有一个变体，它允许你调整补充数量，在变体中被称为 lowTide：limitRate(highTide,lowTide)。选择 lowTide 为 0 ,这会导致严格的 highTide 批量的请求，而不是通过补充策略进一步返工的批次。
+这个操作符有一个变体，它允许你调整补充数量，在变体 limitRate(highTide,lowTide) 中被称为 lowTide。选择 lowTide 为 0 ,这会导致严格的 highTide 批量的请求，而不是通过补充策略进一步返工的批次。
 
-另一方面，limitRequest(N) 将下游请求限制为最大总请求。它将请求相加到 N。如果单个请求没有使总需求超过 N，则该特定请求将完全向上游传播。在源发出该数量后，limitRequest 方法会考虑序列完成，并向下游发送一个 onComplete 信号，以取消源。
+另一方面，limitRequest(N) 将下游请求限制为最大总请求。它将请求相加到 N。如果单个 request 没有使总需求超过 N，则该特定请求将完全向上游传播。在源发出该数量后，limitRequest 会考虑序列完成，并向下游发送一个 onComplete 信号，以取消源。
 
 ## 4.4、以编程方式创建一个序列
 
-在本节中，我们将通过编程定义其关联事件（onNext、onError、onComplete）来介绍 Flux 或 Mono 的创建。所有这些方法都共享这样一个事实：它们公开一个 API 来触发我们称为 sink 的事件。实际上，有一些 sink 的变体，我们很快就会讲到。
+在本节中，我们将通过以编程方式定义其关联事件（onNext、onError 和 onComplete）来介绍 Flux 或 Mono 的创建。所有这些方法都共享这样一个事实：它们公开一个 API 来触发我们称为 sink 的事件。实际上，有几个 sink 的变体，我们很快就会讲到。
 
 ### 4.4.1、同步方法：generate
 
-以编程方式创建 Flux 的最简单方式是通过 generate 方法，该方法采用 generator 函数。
+以编程方式创建 Flux 的最简单方式是通过 generate 方法，该方法采用生成器函数。
 
-这是针对同步和逐个发射的，这意味着 sink 是一个 SynchronousSink，并且它的 next() 方法在每次回调调用中最多只能调用一次。然后你可以另外调用 error(Throwable) 或 complete()，但这是可选的。
+这是针对同步和逐个排放的，这意味着 sink 是一个 SynchronousSink，并且它的 next() 方法在每次回调调用中最多只能调用一次。然后你可以另外调用 error(Throwable) 或 complete()，但这是可选的。
 
 最有用的变体可能是这样一个变体，它还允许你保持一个状态，你可以在 sink 使用中引用该状态来决定下一个要发出什么。然后，生成器函数变为 BiFunction&lt;S,SynchronousSink&lt;T>,S>，其中 &lt;S> 是状态对象的类型。你必须为初始状态提供一个 Supplier&lt;S>，并且生成器函数现在在每一轮返回一个新状态。
 
@@ -315,9 +365,9 @@ Flux<String> flux = Flux.generate(
     3 x 9 = 27
     3 x 10 = 30
 
-还可以使用可变的 &lt;S>。例如，可以使用一个 AtomicLong 作为状态重写上面的示例，并在每一轮中对其进行修改。
+还可以使用可变的 &lt;S>。例如，可以使用一个 AtomicLong 作为状态重写上面的示例，并在每一轮中对其进行修改：
 
-可变状态的方法 generate 变体：
+可变状态变量
 ```
 Flux<String> flux = Flux.generate(
     AtomicLong::new, 
@@ -329,7 +379,7 @@ Flux<String> flux = Flux.generate(
     });
 ```
     （1）这次，我们生成一个可变对象作为状态。
-    （2）在这改变状态。
+    （2）我们改变了这里的状态。
     （3）返回与新状态相同的实例。
 
 注意：如果状态对象需要清理一些资源，则可以使用 generate(Supplier&lt;S>,BiFunction,Consumer&lt;S>) 变体来清理最后一个状态实例。
@@ -347,7 +397,7 @@ Flux<String> flux = Flux.generate(
 }
 ```
     （1）同样，生成一个可变对象作为状态。
-    （2）在这改变状态。
+    （2）我们改变了这里的状态。
     （3）返回与新状态相同的实例。
     （4）我们将最后一个状态值（11）作为 Consumer 拉姆达表达式的输出。
 
@@ -357,11 +407,11 @@ Flux<String> flux = Flux.generate(
 
 create 方法是一种更高级的程序化创建 Flux 的形式，它适合于每轮多次发送，甚至来自多个线程。
 
-它提供了 FluxSink 类，其中包含：next、error 和 complete 方法。与 generate 方法相反，它没有基于状态的变量。另一方面，它可以在回调中触发多线程事件。
+它提供了 FluxSink 类，其中包含：next、error 和 complete 方法。与 generate 方法相反，它没有基于状态的变体。另一方面，它可以在回调中触发多线程事件。
 
 注意：create 方法对于将现有的 API 与反应式世界（例如基于监听器的异步 API）桥接起来非常有用。
 
-警告：尽管 create 方法可以与异步 API 一起使用，但它不会将代码并行化，也不会使其成为异步的。如果在 create 方法的 拉姆达表达式中阻塞，则会使自己暴露在死锁和类似的副作用中。即使使用 subscribeOn，也需要注意，一个长时间阻塞的 create 方法的拉姆达表达式（例如调用 sink.next(t) 的无限循环）可以锁定管道：由于循环耗尽了请求应该运行的同一线程，因此永远不会执行这些请求。使用 subscribeOn(Scheduler,false) 变体：requestOnSeparateThread=false 会使用 create 方法的 Scheduler 线程，并仍然通过在原始线程中执行请求让数据流动。
+警告：尽管 create 方法可以与异步 API 一起使用，但它不会将代码并行化，也不会使其成为异步的。如果在 create 方法的拉姆达表达式中阻塞，则会使自己暴露在死锁和类似的副作用中。即使使用 subscribeOn，也需要注意，一个长时间阻塞的 create 方法的拉姆达表达式（例如调用 sink.next(t) 的无限循环）可以锁定管道：由于循环耗尽了请求应该运行的同一线程，因此永远不会执行这些请求。使用 subscribeOn(Scheduler,false) 变体：requestOnSeparateThread=false 会使用 create 方法的 Scheduler 线程，并仍然通过在原始线程中执行请求让数据流动。
 
 假设你使用一个基于监听器的 API。它按块处理数据，并有两个事件：（1）数据块已准备好，（2）处理已完成（终端事件），如 MyEventListener 接口中所示：
 ```
@@ -405,11 +455,11 @@ LATEST：让下游只接收来自上游的最新信号。
 
 BUFFER：如果下游无法跟上，则缓存所有信号。这是默认情况。（这将执行无限制的缓冲，并可能导致 OutOfMemoryError）
 
-注意：Mono 也有一个 create 生成器。Mono 的 create 的 MonoSink 不允许多次发送信号。它会在第一个信号之后丢弃所有信号。
+注意：Mono 也有一个 create 生成器。Mono 的 create 的 MonoSink 不允许多次排放。它会在第一个信号之后丢弃所有信号。
 
 ### 4.4.3、异步且单线程的方法：push
 
-push 方法位于 generat 和 create 之间，适合于处理来自单个生产者的事件。它类似于创建，因为它也可以是异步的，并且可以使用 create 支持的任何溢出策略来管理背压。但是，一次只能有一个生产线程可以调用 next、complete 或 error。
+push 方法位于 generat 和 create 之间，适合于处理来自单个生产者的事件。它类似于 create，因为它也可以是异步的，并且可以使用 create 支持的任何溢出策略来管理背压。但是，一次只能有一个生产线程可以调用 next、complete 或 error。
 ```
 Flux<String> bridge = Flux.push(sink -> {
     myEventProcessor.register(
@@ -523,9 +573,9 @@ T
 ```
 ## 4.5、线程和调度器
 
-像 RxJava 一样，Reactor 可以被认为是并发不可知的。也就是说，它不强制并发模型。相反，它让开发人员你来负责。但是，这并不妨碍库帮助你处理并发。
+像 RxJava 一样，Reactor 可以被认为是并发不可知的。也就是说，它不强制并发模型。相反，它让开发者你来负责。但是，这并不妨碍库帮助你处理并发。
 
-获取 Flux 或 Mono 并不一定意味着它将运行在专有线程中。相反，大多数操作符继续在前一个操作符执行的线程中工作。如果不指定，最上面的操作符（源）自身在产生 subscribe() 调用的线程上运行。
+获取 Flux 或 Mono 并不一定意味着它将运行在专有 Thread 中。相反，大多数操作符继续在前一个操作符执行的 Thread 中工作。如果不指定，最上面的操作符（源）自身在产生 subscribe() 调用的 Thread 上运行。
 ```
 public static void main(String[] args) {
   final Mono<String> mono = Mono.just("hello "); 
@@ -547,7 +597,7 @@ public static void main(String[] args) {
 
     hello thread Thread-0
 
-在 Reactor 中，执行模型和执行发生的位置由所使用的 Scheduler 决定。Scheduler 的调度职责与 ExecutorService 类似，但是有一个专用的抽象允许做更多的工作，尤其是充当时钟和支持更广泛的实现。（测试、trampolining（蹦床）或即时调度等的虚拟时间）
+在 Reactor 中，执行模型和执行发生的位置由所使用的 Scheduler 决定。Scheduler 的调度职责与 ExecutorService 类似，但是有一个专用的抽象允许做更多的工作，尤其是充当时钟和支持更广泛的实现（测试、trampolining（蹦床）或即时调度等的虚拟时间）。
 
 Schedulers 类有静态方法，可以访问以下执行上下文：
 
@@ -555,8 +605,8 @@ Schedulers 类有静态方法，可以访问以下执行上下文：
 
 （2）单个的可复用的线程（Schedulers.single()）。请注意，在释放 Scheduler 之前，此方法对所有调用者重复使用同一线程。如果你想要每个调用使用单独的线程，则对每个调用使用 Schedulers.newSingle()。
 
-（3）可伸缩的线程池（Schedulers.elastic()）。它根据需要创建新的 worker 池，并重用空闲的。空闲时间过长（默认：60秒）的 worker 池将被释放。例如，这对 I/O 阻塞工作来说是一个好选择。Schedulers.elastic() 是一种方便的方法，可以让阻塞进程拥有自己的线程，这样它就不会占用其他资源。查看：如何包装同步的阻塞调用？
-（https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking）
+（3）可伸缩的线程池（Schedulers.elastic()）。它根据需要创建新的 worker 池，并重用空闲的。空闲时间过长（默认：60秒）的 worker 池将被释放。例如，这对 I/O 阻塞工作来说是一个好选择。Schedulers.elastic() 是一种方便的方法，可以让阻塞进程拥有自己的线程，这样它就不会占用其他资源。查看：[如何包装同步的阻塞调用？](https://projectreactor.io/docs/core/release/reference/#faq.wrap-blocking)
+
 
 （4）为并行工作而调优的固定工作线程池（Schedulers.parallel()）。它创建和 CPU 核心数一样多的 worker。
 
@@ -566,18 +616,18 @@ Schedulers 类有静态方法，可以访问以下执行上下文：
 
 >警告：
 >
->如果不能避免遗留阻塞代码，那么使用 elastic 可以帮助处理它们，而single 和 parallel 不能。因此，在默认的单个和并行 Schedulers 中使用 Reactor 的阻塞 APIs（block()、blockFirst()、blockLast(),以及迭代 toIterable() 或 toStream()）将导致抛出 IllegalStateException。
+>如果不能避免遗留阻塞代码，那么使用 elastic 可以帮助处理它们，而 single 和 parallel 不能。因此，在默认的单个和并行 Schedulers 中使用 Reactor 的阻塞 APIs（block()、blockFirst()、blockLast()，以及迭代 toIterable() 或 toStream()）将导致抛出 IllegalStateException。
 >
 >通过创建实现了 NonBlocking 标记接口的 Thread 实例，自定义的 Schedulers 也可以被标记为“仅非阻塞”。
 
 
-一些操作符默认使用来自 Schedulers 的特定调度器（并且通常为你提供不同的调度器选项）。例如，调用工厂方法 Flux.interval(Duration.ofMillis(300)) 会生成一个 Flux&lt;Long>，每 300毫秒滴答一次。默认情况下，这是由 Schedulers.parallel() 启用的。以下行将调度器（scheduler）更改为类似 Schedulers.single() 的新实例。
+一些操作符默认使用来自 Schedulers 的特定调度器（并且通常为你提供不同的调度器选项）。例如，调用工厂方法 Flux.interval(Duration.ofMillis(300)) 会生成一个 Flux&lt;Long>，每 300毫秒滴答一次。默认情况下，这是由 Schedulers.parallel() 启用的。以下行将调度器（scheduler）更改为类似 Schedulers.single() 的新实例：
 ```
 Flux.interval(Duration.ofMillis(300), Schedulers.newSingle("test"))
 ```
-Reactor 提供在反应式链中切换执行上下文（或 Scheduler）的两种方法：publishOn 和 subscribeOn。两者都采用 Scheduler，并允许你将执行上下文切换到该 Scheduler。但 publishOn 在链中的位置很重要，而 subscribeOn 的位置却不重要。要理解这一区别，你首先要记住：在订阅之前什么都不会发生。
+Reactor 提供在反应式链中切换执行上下文（或 Scheduler）的两种方法：publishOn 和 subscribeOn。两者都采用 Scheduler，并允许你将执行上下文切换到该调度器。但 publishOn 在链中的位置很重要，而 subscribeOn 的位置却不重要。要理解这一区别，你首先要记住：[在 subscribe() 之前什么都不会发生](https://projectreactor.io/docs/core/3.2.11.RELEASE/reference/#reactive.subscribe)。
 
-在 Reactor 中，当你链接操作符时，你可以根据需要将多个 Flux 和 Mono 实现包装在一起。订阅之后，将创建 Subscriber 对象的链，向后（向上）到第一个发布者。这实际上是对你隐藏的。你所能看到的只是 Flux（或 Mono）和 Subscription 的外层，但这些中间的特定于操作符的订阅者才是真正的工作发生的地方。
+在 Reactor 中，当你链接操作符时，你可以根据需要将多个 Flux 和 Mono 实现彼此封装在一起。订阅之后，将创建 Subscriber 对象的链，向后（向上）到第一个发布者。这实际上是对你隐藏的。你所能看到的只是 Flux（或 Mono）和 Subscription 的外层，但这些中间的特定于操作符的订阅者才是真正的工作发生的地方。
 
 有了这些知识，我们可以更深入地了解 publishOn 和 subscribeOn 操作符。
 
