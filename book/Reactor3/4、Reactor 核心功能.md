@@ -631,9 +631,9 @@ Reactor 提供在反应式链中切换执行上下文（或 Scheduler）的两�
 
 有了这些知识，我们可以更深入地了解 publishOn 和 subscribeOn 操作符。
 
-### 4.5.1、方法：publishOn
+### 4.5.1、publishOn
 
-publishOn 与订阅者链中间的任何其他操作符一样以相同的方式应用。它接收来自上游的信号，并在下游重放它们，同时对来自关联的 Scheduler 的 worker 执行回调。因此，它会影响后续操作符的执行位置（直到另一个 publishOn 被链接进来）：
+publishOn 以与订阅者链中间的任何其他操作符相同的方式应用。它接收来自上游的信号，并在下游重放它们，同时对来自关联的 Scheduler 的 worker 执行回调。因此，它会影响后续操作符的执行位置（直到另一个 publishOn 被链接进来）：
 
     （1）将执行上下文更改为 Scheduler 选择的一个 Thread。
     （2）按照规范， onNext 是按顺序发生的，因此这将使用单个线程。
@@ -649,15 +649,15 @@ final Flux<String> flux = Flux
 
 new Thread(() -> flux.subscribe(System.out::println));
 ```
-    （1）创建一个由 4 个线程支持的新的 Scheduler 
+    （1）创建一个由 4 个 Thread 支持的新的 Scheduler 
     （2）第一个 map 运行在 <5> 中的匿名线程上
     （3）publishOn 在从 <1> 中选择的 Thread 上切换整个序列
-    （4）第二个 map 在 <1> 的线程上运行
+    （4）第二个 map 在 <1> 的 Thread 上运行
     （5）这个匿名 Thread 是订阅发生的线程。打印发生在最新的执行上下文上，该上下文来自 publishOn。
 
-### 4.5.2、方法：subscribeOn
+### 4.5.2、subscribeOn
 
-当该反向链被构造时，subscribeOn 应用于订阅进程。因此，不论把 subscribeOn 放在链条中的哪个位置，它总是会影响源发射的上下文。但是，这不会影响后续对 publishOn 的调用行为。它们仍然会切换执行上下文以获取链的一部分。
+当该反向链被构造时，subscribeOn 应用于订阅进程。因此，不论把 subscribeOn 放在链条中的哪个位置，它总是会影响源排放的上下文。但是，这不会影响后续对 publishOn 的调用行为。它们仍然会切换之后链部分的执行上下文。
 
     （1）更改上面整个运算符链订阅的 Thread
     （2）从 Scheduler 选择一个线程
